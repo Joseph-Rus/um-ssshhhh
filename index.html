@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clip</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; }
+    body { display: flex; align-items: center; justify-content: center; }
+    #wrap { position: relative; width: min(100vw, 177.78vh); aspect-ratio: 16 / 9; }
+    #player, #wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #start {
+      position: absolute; inset: 0; z-index: 2; display: flex; align-items: center;
+      justify-content: center; background: rgba(0,0,0,.5); color: #fff; border: 0;
+      font: 600 1.5rem system-ui, sans-serif; cursor: pointer;
+    }
+    #start.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="player"></div>
+    <button id="start">&#9654; Play</button>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const VIDEO_ID = 'yLxUxHIRimg';
+    const START = 0.07; // seconds
+    const END = 13;     // seconds
+    let player, timer;
+
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        videoId: VIDEO_ID,
+        playerVars: { start: 0, end: END, controls: 0, rel: 0, playsinline: 1, modestbranding: 1, disablekb: 1 },
+        events: { onStateChange: onState }
+      });
+    }
+
+    // Seek back to the start whenever the clip ends (or passes END), so it loops.
+    function onState(e) {
+      if (e.data === YT.PlayerState.PLAYING) {
+        clearInterval(timer);
+        timer = setInterval(() => {
+          if (player.getCurrentTime() >= END) player.seekTo(START, true);
+        }, 100);
+      } else if (e.data === YT.PlayerState.ENDED) {
+        player.seekTo(START, true);
+        player.playVideo();
+      }
+    }
+
+    document.getElementById('start').addEventListener('click', (e) => {
+      e.currentTarget.classList.add('hidden');
+      player.seekTo(START, true);
+      player.playVideo();
+    });
+  </script>
+</body>
+</html>
